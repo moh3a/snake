@@ -13,9 +13,6 @@ wasm-pack build --target web
 - Serve:
 
 ```sh
-npm install serve -g
-```
-
-```sh
+# npm install serve -g
 serve
 ```

@@ -6,7 +6,7 @@ use snake::SnakeGame;
 use js_sys::Function;
 use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::prelude::*;
-use web_sys::{console, window, HtmlElement};
+use web_sys::{console, window, HtmlDivElement, HtmlElement};
 
 thread_local! {
     static GAME: Rc<RefCell<SnakeGame>> = Rc::new(RefCell::new(SnakeGame::new(20, 20)));
@@ -33,10 +33,9 @@ pub fn main() {
 }
 
 pub fn render() {
-    let root_container = window()
-        .unwrap_throw()
-        .document()
-        .unwrap_throw()
+    let document = window().unwrap_throw().document().unwrap_throw();
+
+    let root_container = document
         .get_element_by_id("root")
         .unwrap_throw()
         .dyn_into::<HtmlElement>()
@@ -44,5 +43,39 @@ pub fn render() {
 
     root_container.set_inner_html("");
 
-    todo!()
+    let width = GAME.with(|game| game.borrow().width);
+    let height = GAME.with(|game| game.borrow().height);
+
+    root_container
+        .style()
+        .set_property("display", "grid")
+        .unwrap_throw();
+    root_container
+        .style()
+        .set_property(
+            "grid-template",
+            &format!("repeat({}, auto) / repeat({}, auto)", height, width),
+        )
+        .unwrap_throw();
+
+    for y in 0..height {
+        for x in 0..width {
+            let pos = (x, y);
+            let field_element = document
+                .create_element("div")
+                .unwrap_throw()
+                .dyn_into::<HtmlDivElement>()
+                .unwrap_throw();
+
+            field_element.set_inner_text({
+                if pos == GAME.with(|game| game.borrow().food) {
+                    "🥐"
+                } else {
+                    "todo!"
+                }
+            });
+
+            root_container.append_child(&field_element).unwrap_throw();
+        }
+    }
 }
