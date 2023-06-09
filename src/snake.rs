@@ -3,11 +3,11 @@ use std::collections::VecDeque;
 
 pub type Position = (usize, usize);
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Direction {
-    Top,
+    Up,
     Right,
-    Bottom,
+    Down,
     Left,
 }
 
@@ -17,6 +17,7 @@ pub struct SnakeGame {
     pub height: usize,
     pub snake: VecDeque<Position>,
     pub direction: Direction,
+    next_direction: Direction,
     pub food: Position,
     pub finished: bool,
 }
@@ -26,24 +27,29 @@ impl SnakeGame {
         Self {
             width,
             height,
-            snake: [((width - 2).max(0), height / 2)].into_iter().collect(),
+            snake: [((width - 3).max(0), height / 2)].into_iter().collect(),
             direction: Direction::Left,
+            next_direction: Direction::Left,
             food: (2.min(width - 1), height / 2),
             finished: false,
         }
     }
 
     pub fn change_direction(&mut self, direction: Direction) {
+        if self.finished {
+            return;
+        }
+
         match (&self.direction, direction) {
-            (Direction::Top, Direction::Top)
-            | (Direction::Top, Direction::Bottom)
+            (Direction::Up, Direction::Up)
+            | (Direction::Up, Direction::Down)
             | (Direction::Right, Direction::Right)
             | (Direction::Right, Direction::Left)
-            | (Direction::Bottom, Direction::Top)
-            | (Direction::Bottom, Direction::Bottom)
+            | (Direction::Down, Direction::Up)
+            | (Direction::Down, Direction::Down)
             | (Direction::Left, Direction::Right)
             | (Direction::Left, Direction::Left) => {}
-            (_, direction) => self.direction = direction,
+            (_, direction) => self.next_direction = direction,
         }
     }
 
@@ -56,12 +62,14 @@ impl SnakeGame {
             return;
         }
 
+        self.direction = self.next_direction;
+
         // move snake
         let (x, y) = self.snake[0];
         let new_head = match &self.direction {
-            Direction::Top => (x, y - 1),
+            Direction::Up => (x, y - 1),
             Direction::Right => (x + 1, y),
-            Direction::Bottom => (x, y + 1),
+            Direction::Down => (x, y + 1),
             Direction::Left => (x - 1, y),
         };
 
